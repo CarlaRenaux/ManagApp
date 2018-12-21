@@ -1,11 +1,25 @@
 <resources>
-    <string name="app_name">Employee Management</string>
+    <string name="app_name">Library</string>
+    <string name="add_book">Add Book</string>
+    <string name="view_book">View Book</string>
+    <string name="enter_book_price">Enter Book Price</string>
+    <string name="add_new_book">Add new book</string>
+    <string name="select_genre">Select genre</string>
+    <color name="background">#E1E1E1</color>
+    <color name="black">#000000</color>
+    <color name="blueButton">#0B8AEE</color>
+    <color name="white">#FFFFFF</color>
 
-    <array name="departments">
-        <item>Technical</item>
-        <item>Support</item>
-        <item>Research and Development</item>
-        <item>Marketing</item>
-        <item>Human Resource</item>
+    <array name="genres">
+        <item>Action</item>
+        <item>Adventure</item>
+        <item>Biography</item>
+        <item>Comic</item>
+        <item>Crime</item>
+        <item>Drama</item>
+        <item>Horror</item>
+        <item>Romance</item>
+        <item>Science</item>
+        <item>Thriller</item>
     </array>
 </resources>

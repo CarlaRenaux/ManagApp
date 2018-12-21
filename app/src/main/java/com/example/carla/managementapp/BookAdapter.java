@@ -19,23 +19,19 @@ import android.widget.Toast;
 
 import java.util.List;
 
-/**
- * Created by Belal on 9/30/2017.
- */
-
-public class EmployeeAdapter extends ArrayAdapter<Employee> {
+public class BookAdapter extends ArrayAdapter<Book> {
 
     Context mCtx;
     int listLayoutRes;
-    List<Employee> employeeList;
+    List<Book> booksList;
     SQLiteDatabase mDatabase;
 
-    public EmployeeAdapter(Context mCtx, int listLayoutRes, List<Employee> employeeList, SQLiteDatabase mDatabase) {
-        super(mCtx, listLayoutRes, employeeList);
+    public BookAdapter(Context mCtx, int listLayoutRes, List<Book> bookList, SQLiteDatabase mDatabase) {
+        super(mCtx, listLayoutRes, bookList);
 
         this.mCtx = mCtx;
         this.listLayoutRes = listLayoutRes;
-        this.employeeList = employeeList;
+        this.booksList = bookList;
         this.mDatabase = mDatabase;
     }
 
@@ -45,20 +41,20 @@ public class EmployeeAdapter extends ArrayAdapter<Employee> {
         LayoutInflater inflater = LayoutInflater.from(mCtx);
         View view = inflater.inflate(listLayoutRes, null);
 
-        final Employee employee = employeeList.get(position);
-
+        final Book book = booksList.get(position);
 
         TextView textViewName = view.findViewById(R.id.textViewName);
         TextView textViewDept = view.findViewById(R.id.textViewDepartment);
         TextView textViewSalary = view.findViewById(R.id.textViewSalary);
         TextView textViewJoiningDate = view.findViewById(R.id.textViewJoiningDate);
+        TextView textViewAuthor = view.findViewById(R.id.textViewAuthor);
 
 
-        textViewName.setText(employee.getName());
-        textViewDept.setText(employee.getDept());
-        textViewSalary.setText(String.valueOf(employee.getSalary()));
-        textViewJoiningDate.setText(employee.getJoiningDate());
-
+        textViewName.setText(book.getName());
+        textViewDept.setText(book.getGenre());
+        textViewSalary.setText(String.valueOf(book.getPrice()));
+        textViewJoiningDate.setText(book.getAddingDate());
+        textViewAuthor.setText(book.getAuthor());
 
         Button buttonDelete = view.findViewById(R.id.buttonDeleteEmployee);
         Button buttonEdit = view.findViewById(R.id.buttonEditEmployee);
@@ -66,7 +62,7 @@ public class EmployeeAdapter extends ArrayAdapter<Employee> {
         buttonEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                updateEmployee(employee);
+                updateEmployee(book);
             }
         });
 
@@ -78,9 +74,9 @@ public class EmployeeAdapter extends ArrayAdapter<Employee> {
                 builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        String sql = "DELETE FROM employees WHERE id = ?";
-                        mDatabase.execSQL(sql, new Integer[]{employee.getId()});
-                        reloadEmployeesFromDatabase();
+                        String sql = "DELETE FROM books WHERE id = ?";
+                        mDatabase.execSQL(sql, new Integer[]{book.getId()});
+                        reloadBooksFromDatabase();
                     }
                 });
                 builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -97,20 +93,21 @@ public class EmployeeAdapter extends ArrayAdapter<Employee> {
         return view;
     }
 
-    private void updateEmployee(final Employee employee) {
+    private void updateEmployee(final Book book) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(mCtx);
 
         LayoutInflater inflater = LayoutInflater.from(mCtx);
-        View view = inflater.inflate(R.layout.dialog_update_employee, null);
+        View view = inflater.inflate(R.layout.dialog_update_book, null);
         builder.setView(view);
-
 
         final EditText editTextName = view.findViewById(R.id.editTextName);
         final EditText editTextSalary = view.findViewById(R.id.editTextSalary);
         final Spinner spinnerDepartment = view.findViewById(R.id.spinnerDepartment);
+        final EditText editTextAuthor = view.findViewById(R.id.editTextAuthor);
 
-        editTextName.setText(employee.getName());
-        editTextSalary.setText(String.valueOf(employee.getSalary()));
+        editTextAuthor.setText(book.getAuthor());
+        editTextName.setText(book.getName());
+        editTextSalary.setText(String.valueOf(book.getPrice()));
 
         final AlertDialog dialog = builder.create();
         dialog.show();
@@ -119,8 +116,9 @@ public class EmployeeAdapter extends ArrayAdapter<Employee> {
             @Override
             public void onClick(View view) {
                 String name = editTextName.getText().toString().trim();
-                String salary = editTextSalary.getText().toString().trim();
-                String dept = spinnerDepartment.getSelectedItem().toString();
+                String price = editTextSalary.getText().toString().trim();
+                String genre = spinnerDepartment.getSelectedItem().toString();
+                String author = editTextAuthor.getText().toString().trim();
 
                 if (name.isEmpty()) {
                     editTextName.setError("Name can't be blank");
@@ -128,43 +126,56 @@ public class EmployeeAdapter extends ArrayAdapter<Employee> {
                     return;
                 }
 
-                if (salary.isEmpty()) {
-                    editTextSalary.setError("Salary can't be blank");
+                if (price.isEmpty()) {
+                    editTextSalary.setError("Price can't be blank");
                     editTextSalary.requestFocus();
                     return;
                 }
 
-                String sql = "UPDATE employees \n" +
+                if(author.isEmpty()){
+                    editTextAuthor.setError("Name can't be blank");
+                    editTextAuthor.requestFocus();
+                    return;
+                }
+
+                String sql = "UPDATE books \n" +
                         "SET name = ?, \n" +
-                        "department = ?, \n" +
-                        "salary = ? \n" +
+                        "genre = ?, \n" +
+                        "price = ?, \n" +
+                        "author = ? \n" +
                         "WHERE id = ?;\n";
 
-                mDatabase.execSQL(sql, new String[]{name, dept, salary, String.valueOf(employee.getId())});
-                Toast.makeText(mCtx, "Employee Updated", Toast.LENGTH_SHORT).show();
-                reloadEmployeesFromDatabase();
+                mDatabase.execSQL(sql, new String[]{name, genre, price, author, String.valueOf(book.getId())});
+                Toast.makeText(mCtx, "Book Updated", Toast.LENGTH_SHORT).show();
+                reloadBooksFromDatabase();
 
                 dialog.dismiss();
             }
         });
     }
 
-    private void reloadEmployeesFromDatabase() {
-        Cursor cursorEmployees = mDatabase.rawQuery("SELECT * FROM employees", null);
-        if (cursorEmployees.moveToFirst()) {
-            employeeList.clear();
+    private void reloadBooksFromDatabase() {
+        Cursor cursorBooks = mDatabase.rawQuery("SELECT * FROM books", null);
+        if (cursorBooks.moveToFirst()) {
+            booksList.clear();
             do {
-                employeeList.add(new Employee(
-                        cursorEmployees.getInt(0),
-                        cursorEmployees.getString(1),
-                        cursorEmployees.getString(2),
-                        cursorEmployees.getString(3),
-                        cursorEmployees.getDouble(4)
+                booksList.add(new Book(
+                        cursorBooks.getInt(0),
+                        cursorBooks.getString(1),
+                        cursorBooks.getString(2),
+                        cursorBooks.getString(3),
+                        cursorBooks.getString(4),
+                        cursorBooks.getDouble(5)
                 ));
-            } while (cursorEmployees.moveToNext());
+            } while (cursorBooks.moveToNext());
         }
-        cursorEmployees.close();
+        if(cursorBooks.getCount() == 0 ){
+            booksList.clear();
+        }
+
+        cursorBooks.close();
         notifyDataSetChanged();
+
     }
 
 }
